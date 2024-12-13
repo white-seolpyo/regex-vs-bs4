@@ -1,5 +1,6 @@
+from html import unescape
 from pprint import pprint
-from re import DOTALL, findall, search, sub
+from re import DOTALL, findall, search
 from time import time
 
 import requests
@@ -40,9 +41,11 @@ def regex(text):
     result = []
     for item in list_item:
         title = ' '.join([i for i in search('<title><!\[CDATA\[(.+?)\]\]></title>', item, DOTALL).group(1).split() if i])
+        title = unescape(title)
         author = search('<author>(.+?)</author>', item, DOTALL).group(1)
         link = search('<link><!\[CDATA\[(.+?)\]\]></link>', item, DOTALL).group(1)
         desc = search('<description><!\[CDATA\[(.+?)\]\]></description>', item, DOTALL).group(1)
+        desc = unescape(desc)
         date = search('<pubDate>(.+?)</pubDate>', item, DOTALL).group(1)
         tag = search('<tag><!\[CDATA\[(.*?)\]\]></tag>', item, DOTALL).group(1)
         i = {
@@ -116,15 +119,15 @@ print(f'{b[1]=}')
 {'title': '[공지] 포스트 종료에 따른 블로그 이전 안내',
  'author': 'blogpeople',
  'link': 'https://blog.naver.com/blogpeople/223687587849?fromRss=true&trackingCode=rss',
- 'desc': '안녕하세요. 네이버 블로그팀입니다. 2025.04.30 (수), 네이버 포스트가 종료됩니다. 포스트 공지 보러 가기 '
-         '&gt; 포스트는 아쉽게 종료되지만 포스트에서의 창작과 구독 활동은 블로그에서 계속 이어가실 수 있답니다! '
-         '&quot;포스트에 썼던 내 글, 블로그에 그대로 옮겨지나요?&quot; &quot;포스트에서 즐겨 보던 글, 블로그에서 '
-         '어떻게 보나요?&quot; 위와 같은 궁금증이 있으시다면! 블로그에서, 포스트 활동을 이어가는 방법에 대해 아래 내용을 '
-         '자세히 확인해 주세요. 이전된 게시글은 어떻게 보이나요? 블로그로 게시글 이전을 신청하신 경우, 포스트에서 전체 공개로 '
-         '발행된 게시글이 블로그의 최신 에디터 포맷으로 변환됩니다. ※기본형.......',
+ 'desc': '안녕하세요. 네이버 블로그팀입니다. 2025.04.30 (수), 네이버 포스트가 종료됩니다. 포스트 공지 보러 가기 > '
+         '포스트는 아쉽게 종료되지만 포스트에서의 창작과 구독 활동은 블로그에서 계속 이어가실 수 있답니다! "포스트에 썼던 내 글, '
+         '블로그에 그대로 옮겨지나요?" "포스트에서 즐겨 보던 글, 블로그에서 어떻게 보나요?" 위와 같은 궁금증이 있으시다면! '
+         '블로그에서, 포스트 활동을 이어가는 방법에 대해 아래 내용을 자세히 확인해 주세요. 이전된 게시글은 어떻게 보이나요? '
+         '블로그로 게시글 이전을 신청하신 경우, 포스트에서 전체 공개로 발행된 게시글이 블로그의 최신 에디터 포맷으로 변환됩니다. '
+         '※기본형.......',
  'date': 'Mon, 09 Dec 2024 16:34:58 +0900',
  'tag': ''}
 
-a[1]='parse, tt=0.022998809814453125'
-b[1]='regex, tt=0.002001047134399414'
+a[1]='parse, tt=0.02299976348876953'
+b[1]='regex, tt=0.003000974655151367'
 """

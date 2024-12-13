@@ -1,30 +1,27 @@
-from html import unescape
 from pprint import pprint
-from re import DOTALL, findall, search, sub
+from re import DOTALL, findall, search
 from time import time
 
 import requests
 from bs4 import BeautifulSoup
 
 
+
 def parse(text):
     t = time()
 
-    soup = BeautifulSoup(text, 'html.parser')
-    list_item = soup.select('ul.list_news > li')
+    soup = BeautifulSoup(text, 'xml')
+    list_item = soup.select('item')
     result = []
     for item in list_item:
-        a = item.select_one('a.news_tit')
-        title = a.text
-        author = item.select_one('a.info.press').text
-        link = a['href']
-        desc = item.select_one('a.dsc_txt_wrap').text
-        date = item.select_one('span.info:not(:has(i))').text
+        title = item.find('title').text
+        author = item.find('author').text
+        link = item.find('link').text
+        date = item.find('lastBuildDate').text
         i = {
             'title': title,
             'author': author,
             'link': link,
-            'desc': desc,
             'date': date,
         }
         result.append(i)
@@ -36,30 +33,17 @@ def parse(text):
 def regex(text):
     t = time()
 
-    list_item = findall('<li class="bx".+?>(.+?)</li>', text, DOTALL)
+    list_item = findall('<item>(.+?)</item>', text, DOTALL)
     result = []
     for item in list_item:
-        title = search('<a.+class="news_tit.+?>(.+?)</a>', item, DOTALL).group(1)
-        title = sub('<.+?>', '', title)
-        title = unescape(title)
-        author = search('</span>(.+?)</a>', item, DOTALL).group(1)
-        author = sub('<.+?>', '', author)
-        link = findall('<a href="([^"]+?)" class="news_tit', item, DOTALL)
-        # a = findall('<a.+?>', item)
-        # for i in a:
-        #     link = search('href="(.+?)" class="news_tit', i, DOTALL)
-        #     if link:
-        #         link = link.group(1)
-        #         break
-        desc = search('<a.+class="api_txt_lines.+?>(.+?)</a>', item, DOTALL).group(1)
-        desc = sub('<.+?>', '', desc)
-        desc = unescape(desc)
-        date = search('<span class="info">([^<]+?)</span>', item, DOTALL).group(1)
+        title = search('<title><!\[CDATA\[(.+?)\]\]></title>', item, DOTALL).group(1)
+        author = search('<author><!\[CDATA\[(.+?)\]\]></author>', item, DOTALL).group(1)
+        link = search('<link><!\[CDATA\[(.+?)\]\]></link>', item, DOTALL).group(1)
+        date = search('<lastBuildDate>(.+?)</lastBuildDate>', item, DOTALL).group(1)
         i = {
             'title': title,
             'author': author,
             'link': link,
-            'desc': desc,
             'date': date,
         }
         result.append(i)
@@ -69,7 +53,7 @@ def regex(text):
     return (result, text)
 
 
-url = 'https://search.naver.com/search.naver?where=news&query=%EB%84%A4%EC%9D%B4%EB%B2%84&sm=tab_opt&sort=1&photo=3&field=0&pd=3&ds=2020.02.20&de=2022.02.22&docid=&related=0&mynews=0&office_type=0&office_section_code=0&news_office_checked=&nso=so%3Add%2Cp%3Afrom20200220to20220222&is_sug_officeid=0&office_category=0&service_area=0'
+url = 'https://kind.krx.co.kr/disclosure/rsstodaydistribute.do?method=searchRssTodayDistribute&repIsuSrtCd=&mktTpCd=0&searchCorpName=&currentPageSize=100'
 
 r = requests.get(url)
 t = r.text
@@ -88,36 +72,24 @@ print(f'{a[1]=}')
 print(f'{b[1]=}')
 
 """
-{'title': '우크라이나 긴장 고조에 깜짝 놀란 코스피…외국인 3200억 매도 ',
- 'author': '한겨레언론사 선정',
- 'link': 'https://www.hani.co.kr/arti/economy/economy_general/1032169.html',
- 'desc': '시가총액 상위 10개 종목 중 외국인 보유 비중이 50%가 넘는 삼성전자·에스케이(SK)하이닉스·네이버 모두 1%대 '
-         '하락률을 보였다. 외국인은 이날 유가증권시장에서만 3200억원 남짓 주식을 팔아치웠다. 코스닥지수는 전날보다 '
-         '1.83%(16.14) 내린 868.11에 마감했다. 닛케이지수(일본) 등 아시아 주요 지수들도 1%대... ',
- 'date': '2022.02.22.'}
-{'title': '우크라이나 긴장 고조에 깜짝 놀란 코스피…외국인 3200억 매도 ',
- 'author': '한겨레언론사 선정',
- 'link': ['https://www.hani.co.kr/arti/economy/economy_general/1032169.html'],
- 'desc': '시가총액 상위 10개 종목 중 외국인 보유 비중이 50%가 넘는 삼성전자·에스케이(SK)하이닉스·네이버 모두 1%대 '
-         '하락률을 보였다. 외국인은 이날 유가증권시장에서만 3200억원 남짓 주식을 팔아치웠다. 코스닥지수는 전날보다 '
-         '1.83%(16.14) 내린 868.11에 마감했다. 닛케이지수(일본) 등 아시아 주요 지수들도 1%대... ',
- 'date': '2022.02.22.'}
+{'title': '[유]스타에스엠리츠 주주명부폐쇄기간 또는 기준일 설정',
+ 'author': '[유]스타에스엠리츠',
+ 'link': 'http://kind.krx.co.kr:80/common/disclsviewer.do?method=searchInitInfo&acptNo=20241213000278&docno=',
+ 'date': 'Fri, 13 Dec 2024 10:16:00 +0900'}
+{'title': '[유]스타에스엠리츠 주주명부폐쇄기간 또는 기준일 설정',
+ 'author': '[유]스타에스엠리츠',
+ 'link': 'http://kind.krx.co.kr:80/common/disclsviewer.do?method=searchInitInfo&acptNo=20241213000278&docno=',
+ 'date': 'Fri, 13 Dec 2024 10:16:00 +0900'}
 
-{'title': '크래프톤도 NFT 사업 진출… "새 성장동력 확보" ',
- 'author': '디지털타임스',
- 'link': 'http://www.dt.co.kr/contents.html?article_no=2022022302101231820001&ref=naver',
- 'desc': '크래프톤은 이미 네이버제트와 이용자 창작 콘텐츠(User Generated Contents·UGC) 오픈 메타버스 '
-         '프로젝트를 추진 중이다. 다수의 온라인 게임을 개발하며... 네이버와 카카오는 연내 NFT 사업을 본격화한다. 네이버의 '
-         "경우 최근 자회사 스노우와 AI(인공지능) 기업 알체라가 함께 만든 조인트벤처 '팔라'를... ",
- 'date': '2022.02.22.'}
-{'title': '크래프톤도 NFT 사업 진출… "새 성장동력 확보" ',
- 'author': '디지털타임스',
- 'link': ['http://www.dt.co.kr/contents.html?article_no=2022022302101231820001&ref=naver'],
- 'desc': '크래프톤은 이미 네이버제트와 이용자 창작 콘텐츠(User Generated Contents·UGC) 오픈 메타버스 '
-         '프로젝트를 추진 중이다. 다수의 온라인 게임을 개발하며... 네이버와 카카오는 연내 NFT 사업을 본격화한다. 네이버의 '
-         "경우 최근 자회사 스노우와 AI(인공지능) 기업 알체라가 함께 만든 조인트벤처 '팔라'를... ",
- 'date': '2022.02.22.'}
+{'title': '[유]화승코퍼레이션 주주명부폐쇄기간 또는 기준일 설정',
+ 'author': '[유]화승코퍼레이션',
+ 'link': 'http://kind.krx.co.kr:80/common/disclsviewer.do?method=searchInitInfo&acptNo=20241213000261&docno=',
+ 'date': 'Fri, 13 Dec 2024 10:16:00 +0900'}
+{'title': '[유]화승코퍼레이션 주주명부폐쇄기간 또는 기준일 설정',
+ 'author': '[유]화승코퍼레이션',
+ 'link': 'http://kind.krx.co.kr:80/common/disclsviewer.do?method=searchInitInfo&acptNo=20241213000261&docno=',
+ 'date': 'Fri, 13 Dec 2024 10:16:00 +0900'}
 
-a[1]='parse, tt=0.051999568939208984'
-b[1]='regex, tt=0.0010013580322265625'
+a[1]='parse, tt=0.026996374130249023'
+b[1]='regex, tt=0.0020003318786621094'
 """
